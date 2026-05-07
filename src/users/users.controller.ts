@@ -7,8 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import type { User } from './user.model';
 import { UsersService } from './users.service';
@@ -18,8 +20,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(): User[] {
-    return this.usersService.findAll();
+  findAll(@Query() query: FindUsersQueryDto): User[] {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')

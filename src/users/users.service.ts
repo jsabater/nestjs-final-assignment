@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { CreateUserDto } from './dto/create-user.dto';
+import type { FindUsersQueryDto } from './dto/find-users-query.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.model';
 
@@ -16,8 +17,15 @@ export class UsersService {
     },
   ];
 
-  findAll(): User[] {
-    return this.users;
+  findAll(query: FindUsersQueryDto): User[] {
+    const { active, role } = query;
+
+    return this.users.filter((user) => {
+      const matchesActive = active === undefined || user.active === active;
+      const matchesRole = role === undefined || user.role === role;
+
+      return matchesActive && matchesRole;
+    });
   }
 
   findOne(id: number): User {
