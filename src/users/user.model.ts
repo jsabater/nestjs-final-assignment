@@ -1,4 +1,6 @@
-export type UserRole = 'admin' | 'member';
+export const USER_ROLES = ['admin', 'member'] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
 
 export interface User {
   id: number;
@@ -7,17 +9,4 @@ export interface User {
   role: UserRole;
   active: boolean;
   createdAt: string;
-}
-
-export interface CreateUserInput {
-  name: string;
-  email: string;
-  role: UserRole;
-}
-
-export interface UpdateUserInput {
-  name?: string;
-  email?: string;
-  role?: UserRole;
-  active?: boolean;
 }

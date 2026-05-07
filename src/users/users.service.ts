@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserInput, UpdateUserInput, User } from './user.model';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './user.model';
 
 @Injectable()
 export class UsersService {
@@ -28,12 +30,12 @@ export class UsersService {
     return user;
   }
 
-  create(createUserInput: CreateUserInput): User {
+  create(createUserDto: CreateUserDto): User {
     const newUser: User = {
       id: this.users.length + 1,
-      name: createUserInput.name,
-      email: createUserInput.email,
-      role: createUserInput.role,
+      name: createUserDto.name,
+      email: createUserDto.email,
+      role: createUserDto.role,
       active: true,
       createdAt: new Date().toISOString(),
     };
@@ -43,16 +45,30 @@ export class UsersService {
     return newUser;
   }
 
-  update(id: number, updateUserInput: UpdateUserInput): User {
-    const user = this.users.find((currentUser) => currentUser.id === id);
+  update(id: number, updateUserDto: UpdateUserDto): User {
+    const userIndex = this.users.findIndex((user) => user.id === id);
 
-    if (!user) {
+    if (userIndex === -1) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    Object.assign(user, updateUserInput);
+    const currentUser = this.users[userIndex];
+    const {
+      name = currentUser.name,
+      email = currentUser.email,
+      role = currentUser.role,
+      active = currentUser.active,
+    } = updateUserDto;
 
-    return user;
+    this.users[userIndex] = {
+      ...currentUser,
+      name,
+      email,
+      role,
+      active,
+    };
+
+    return this.users[userIndex];
   }
 
   remove(id: number): User {
