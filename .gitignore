@@ -55,7 +55,5 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-
-MÒDUL_5.pdf
-PRÀCTICA_EVALUABLE.pdf
-MODUL_6.md
+*.sqlite
+*.sqlite3
