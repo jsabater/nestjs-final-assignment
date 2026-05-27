@@ -1,6 +1,5 @@
 import { IsIn, IsNotEmpty, IsString } from 'class-validator';
 import { RESOURCE_TYPES, type ResourceType } from '../resources.model';
-import { RESOURCE_STATUSES, type ResourceStatus } from '../resources.model';
 
 /**
  * DTO for creating a new resource.
@@ -16,9 +15,6 @@ export class CreateResourceDto {
 
   @IsIn(RESOURCE_TYPES)
   type!: ResourceType;
-
-  @IsIn(RESOURCE_STATUSES)
-  status!: ResourceStatus;
 
   @IsString()
   @IsNotEmpty()

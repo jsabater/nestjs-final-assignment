@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../users/users.model';
 
 /**
  * Available types of resources.
@@ -47,4 +54,11 @@ export class Resource {
   /** ISO 8601 timestamp of when the resource was created. */
   @Column({ nullable: false })
   createdAt!: string;
+
+  @Column({ nullable: true })
+  assignedToUserId!: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'assignedToUserId' })
+  assignedToUser?: User | null;
 }

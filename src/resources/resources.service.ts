@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import type { CreateResourceDto } from './dto/create-resource.dto';
 import type { FindResourceQueryDto } from './dto/find-resources-query.dto';
 import type { UpdateResourceDto } from './dto/update-resource.dto';
+import type { AssignResourceDto } from './dto/assign-resource.dto';
 import { Resource } from './resources.model';
+import { User } from 'src/users/users.model';
 
 /**
  * In the create() method, async/await is not used because the focus is on returning the newly
@@ -22,6 +28,8 @@ export class ResourcesService {
   constructor(
     @InjectRepository(Resource)
     private readonly resourcesRepository: Repository<Resource>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   /**
@@ -31,7 +39,7 @@ export class ResourcesService {
    */
   findAll(query: FindResourceQueryDto): Promise<Resource[]> {
     const { type, status } = query;
-    const where: Partial<Resource> = {};
+    const where: FindOptionsWhere<Resource> = {};
 
     if (type !== undefined) {
       where.type = type;
@@ -66,13 +74,13 @@ export class ResourcesService {
    * @returns A Promise with the created resource.
    */
   create(createResourceDto: CreateResourceDto): Promise<Resource> {
-    const newResource: Partial<Resource> = {
+    const newResource = this.resourcesRepository.create({
       name: createResourceDto.name,
       type: createResourceDto.type,
-      status: createResourceDto.status,
+      status: 'available',
       location: createResourceDto.location,
       createdAt: new Date().toISOString(),
-    };
+    });
 
     return this.resourcesRepository.save(newResource);
   }
@@ -90,13 +98,56 @@ export class ResourcesService {
       location = currentResource.location,
     } = updateResourceDto;
 
-    return this.resourcesRepository.save({
+    const updatedResource = this.resourcesRepository.create({
       ...currentResource,
       name,
       type,
       status,
       location,
     });
+
+    return this.resourcesRepository.save(updatedResource);
+  }
+
+  async assign(
+    id: number,
+    assignResourceDto: AssignResourceDto,
+  ): Promise<Resource> {
+    const resource = await this.findOne(id);
+    const user = await this.usersRepository.findOneBy({
+      id: assignResourceDto.userId,
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        `User with id ${assignResourceDto.userId} not found`,
+      );
+    }
+
+    if (resource.status === 'assigned') {
+      throw new BadRequestException(
+        `Resource with id ${id} is already assigned`,
+      );
+    }
+
+    const assignedResource = this.resourcesRepository.create({
+      ...resource,
+      status: 'assigned',
+      assignedToUserId: user.id,
+    });
+
+    return this.resourcesRepository.save(assignedResource);
+  }
+
+  async release(id: number): Promise<Resource> {
+    const resource = await this.findOne(id);
+    const releasedResource = this.resourcesRepository.create({
+      ...resource,
+      status: 'available',
+      assignedToUserId: null,
+    });
+
+    return this.resourcesRepository.save(releasedResource);
   }
 
   async remove(id: number): Promise<Resource> {

@@ -9,11 +9,13 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import type { User } from './users.model';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersQueryDto } from './dto/find-users-query.dto';
+import { ParseResourceAssignmentDto } from './dto/parse-resource-assignment.dto';
+import type { User } from './users.model';
+import type { Resource } from '../resources/resources.model';
 
 @Controller('users')
 export class UsersController {
@@ -45,5 +47,14 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.remove(id);
+  }
+
+  @Post('parse-resource-assignment')
+  parseResourceAssignment(
+    @Body() parseResourceAssignmentDto: ParseResourceAssignmentDto,
+  ): Promise<Resource> {
+    return this.usersService.parseResourceAssignment(
+      parseResourceAssignmentDto,
+    );
   }
 }
