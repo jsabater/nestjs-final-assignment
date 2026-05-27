@@ -1,5 +1,5 @@
 import { IsEmail, IsIn, IsNotEmpty, IsString } from 'class-validator';
-import { USER_ROLES, type UserRole } from '../user.model';
+import { USER_ROLES, type UserRole } from '../users.model';
 
 /**
  * DTO for creating a new user.
