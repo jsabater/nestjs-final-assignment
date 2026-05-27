@@ -9,11 +9,11 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { FindUsersQueryDto } from './dto/find-users-query.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import type { User } from './user.model';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 
 @Controller('users')
 export class UsersController {
