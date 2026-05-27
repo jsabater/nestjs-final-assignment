@@ -19,7 +19,6 @@ import { User } from './users.model';
  */
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
