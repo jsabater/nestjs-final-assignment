@@ -1,37 +1,57 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import type { CreateResourceDto } from './dto/create-resource.dto';
 import type { FindResourceQueryDto } from './dto/find-resources-query.dto';
 import type { UpdateResourceDto } from './dto/update-resource.dto';
-import { Resource } from './resource.model';
+import { Resource } from './resources.model';
 
+/**
+ * In the create() method, async/await is not used because the focus is on returning the newly
+ * created record with the generated ID. By not using async/await, the method waits for the
+ * Promise returned by save() to resolve, allowing it to obtain the generated ID and return
+ * the complete record.
+ *
+ * On the other hand, in the update() and remove() methods, the focus is on updating or removing
+ * the record without needing to obtain any specific information from the database. In these
+ * cases, the methods can return immediately after initiating the update or removal operation,
+ * without the need to wait for the Promise to resolve.
+ */
 @Injectable()
 export class ResourcesService {
-  private resources: Resource[] = [
-    {
-      id: 1,
-      name: 'Laptop',
-      type: 'laptop',
-      status: 'available',
-      location: 'Room 101',
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Resource)
+    private readonly resourcesRepository: Repository<Resource>,
+  ) {}
 
-  findAll(query: FindResourceQueryDto): Resource[] {
+  /**
+   * Finds all resources based on the provided query parameters.
+   * @param query - The query parameters for finding resources (type, status).
+   * @returns A Promise with a list of resources.
+   */
+  findAll(query: FindResourceQueryDto): Promise<Resource[]> {
     const { type, status } = query;
+    const where: Partial<Resource> = {};
 
-    return this.resources.filter((resource) => {
-      const matchesType = type === undefined || resource.type === type;
-      const matchesStatus = status === undefined || resource.status === status;
+    if (type !== undefined) {
+      where.type = type;
+    }
 
-      return matchesType && matchesStatus;
-    });
+    if (status !== undefined) {
+      where.status = status;
+    }
+
+    return this.resourcesRepository.find({ where });
   }
 
-  findOne(id: number): Resource {
-    const resource = this.resources.find(
-      (currentResource) => currentResource.id === id,
-    );
+  /**
+   * Finds a resource by their ID.
+   * @param id - The ID of the resource to find.
+   * @returns A Promise with the found resource.
+   * @throws NotFoundException if the resource is not found.
+   */
+  async findOne(id: number): Promise<Resource> {
+    const resource = await this.resourcesRepository.findOneBy({ id });
 
     if (!resource) {
       throw new NotFoundException(`Resource with id ${id} not found`);
@@ -40,9 +60,13 @@ export class ResourcesService {
     return resource;
   }
 
-  create(createResourceDto: CreateResourceDto): Resource {
-    const newResource: Resource = {
-      id: this.resources.length + 1,
+  /**
+   * Creates a new resource on the database.
+   * @param createResourceDto - The DTO for creating a new resource.
+   * @returns A Promise with the created resource.
+   */
+  create(createResourceDto: CreateResourceDto): Promise<Resource> {
+    const newResource: Partial<Resource> = {
       name: createResourceDto.name,
       type: createResourceDto.type,
       status: createResourceDto.status,
@@ -50,21 +74,15 @@ export class ResourcesService {
       createdAt: new Date().toISOString(),
     };
 
-    this.resources.push(newResource);
-
-    return newResource;
+    return this.resourcesRepository.save(newResource);
   }
 
-  update(id: number, updateResourceDto: UpdateResourceDto): Resource {
-    const resourceIndex = this.resources.findIndex(
-      (resource) => resource.id === id,
-    );
+  async update(
+    id: number,
+    updateResourceDto: UpdateResourceDto,
+  ): Promise<Resource> {
+    const currentResource = await this.findOne(id);
 
-    if (resourceIndex === -1) {
-      throw new NotFoundException(`Resource with id ${id} not found`);
-    }
-
-    const currentResource = this.resources[resourceIndex];
     const {
       name = currentResource.name,
       type = currentResource.type,
@@ -72,28 +90,18 @@ export class ResourcesService {
       location = currentResource.location,
     } = updateResourceDto;
 
-    this.resources[resourceIndex] = {
+    return this.resourcesRepository.save({
       ...currentResource,
       name,
       type,
       status,
       location,
-    };
-
-    return this.resources[resourceIndex];
+    });
   }
 
-  remove(id: number): Resource {
-    const resourceIndex = this.resources.findIndex(
-      (resource) => resource.id === id,
-    );
+  async remove(id: number): Promise<Resource> {
+    const currentResource = await this.findOne(id);
 
-    if (resourceIndex === -1) {
-      throw new NotFoundException(`Resource with id ${id} not found`);
-    }
-
-    const [deletedResource] = this.resources.splice(resourceIndex, 1);
-
-    return deletedResource;
+    return this.resourcesRepository.remove(currentResource);
   }
 }

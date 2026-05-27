@@ -1,3 +1,5 @@
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
 /**
  * Available types of resources.
  * Defined as an array then used as a type because @IsIn does not accept types
@@ -20,17 +22,29 @@ export type ResourceStatus = (typeof RESOURCE_STATUSES)[number];
 /**
  * Represents a resource entity in the system.
  */
-export interface Resource {
+@Entity()
+export class Resource {
   /** Unique identifier for the resource. */
-  id: number;
+  @PrimaryGeneratedColumn()
+  id!: number;
+
   /** Name of the resource. */
-  name: string;
+  @Column({ nullable: false })
+  name!: string;
+
   /** Type of resource. */
-  type: ResourceType;
+  @Column({ nullable: false })
+  type!: ResourceType;
+
   /** Status of the resource. */
-  status: ResourceStatus;
+  @Column({ nullable: false })
+  status!: ResourceStatus;
+
   /** Location of the resource. */
-  location: string;
+  @Column({ nullable: false })
+  location!: string;
+
   /** ISO 8601 timestamp of when the resource was created. */
-  createdAt: string;
+  @Column({ nullable: false })
+  createdAt!: string;
 }

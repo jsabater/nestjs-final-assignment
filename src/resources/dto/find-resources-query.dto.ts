@@ -1,6 +1,6 @@
 import { IsIn, IsOptional } from 'class-validator';
-import { RESOURCE_TYPES, type ResourceType } from '../resource.model';
-import { RESOURCE_STATUSES, type ResourceStatus } from '../resource.model';
+import { RESOURCE_TYPES, type ResourceType } from '../resources.model';
+import { RESOURCE_STATUSES, type ResourceStatus } from '../resources.model';
 
 /**
  * Query parameters for finding resources
